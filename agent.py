@@ -8,6 +8,7 @@ import requests
 from dotenv import load_dotenv
 
 from retrieval import search_memories
+from db import get_config_var
 
 # Ensure environment variables are loaded
 load_dotenv()
@@ -72,12 +73,12 @@ def sanitize_error_message(message: str, api_key: Optional[str] = None) -> str:
     if api_key and len(api_key.strip()) > 3:
         sanitized = sanitized.replace(api_key.strip(), "[REDACTED_KEY]")
 
-    # Redact environment secrets if present
-    env_openrouter_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    # Redact environment or Streamlit secrets if present
+    env_openrouter_key = str(get_config_var("OPENROUTER_API_KEY", "") or "").strip()
     if env_openrouter_key and len(env_openrouter_key) > 3:
         sanitized = sanitized.replace(env_openrouter_key, "[REDACTED_KEY]")
 
-    env_falkordb_pw = os.environ.get("FALKORDB_PASSWORD", "").strip()
+    env_falkordb_pw = str(get_config_var("FALKORDB_PASSWORD", "") or "").strip()
     if env_falkordb_pw and len(env_falkordb_pw) > 3:
         sanitized = sanitized.replace(env_falkordb_pw, "[REDACTED_PASSWORD]")
 
@@ -101,12 +102,12 @@ def sanitize_error_message(message: str, api_key: Optional[str] = None) -> str:
 def get_bounded_timeout(timeout: Optional[Union[int, float]] = None) -> float:
     """
     Return a strictly bounded timeout in seconds (float).
-    Falls back to OPENROUTER_TIMEOUT environment variable, then DEFAULT_REQUEST_TIMEOUT_SECONDS.
+    Falls back to OPENROUTER_TIMEOUT secret or environment variable, then DEFAULT_REQUEST_TIMEOUT_SECONDS.
     Guarantees MIN_TIMEOUT_SECONDS <= timeout <= MAX_TIMEOUT_SECONDS.
     Never returns None or an unbounded value.
     """
     if timeout is None:
-        env_val = os.environ.get("OPENROUTER_TIMEOUT", "").strip()
+        env_val = str(get_config_var("OPENROUTER_TIMEOUT", "") or "").strip()
         if env_val:
             try:
                 timeout = float(env_val)
@@ -129,10 +130,10 @@ def get_bounded_timeout(timeout: Optional[Union[int, float]] = None) -> float:
 
 def get_configured_model() -> str:
     """
-    Read model ID from OPENROUTER_MODEL environment variable.
+    Read model ID from OPENROUTER_MODEL secret or environment variable.
     Do not hardcode a replacement. Falls back to DEFAULT_MODEL only if unset.
     """
-    env_model = os.environ.get("OPENROUTER_MODEL", "").strip()
+    env_model = str(get_config_var("OPENROUTER_MODEL", "") or "").strip()
     return env_model if env_model else DEFAULT_MODEL
 
 
@@ -495,9 +496,9 @@ def ask_developer_memory_agent(
         )
 
     # Validate API key
-    api_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    api_key = str(get_config_var("OPENROUTER_API_KEY", "") or "").strip()
     if not api_key:
-        logger.warning("OPENROUTER_API_KEY is not configured in .env; skipping inference")
+        logger.warning("OPENROUTER_API_KEY is not configured in secrets or .env; skipping inference")
         return AgentResponse(
             success=False,
             evidence=evidence,

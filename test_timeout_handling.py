@@ -89,6 +89,69 @@ class TestTimeoutHandling(unittest.TestCase):
             model = get_configured_model()
             self.assertEqual(model, DEFAULT_MODEL)
 
+    # ---------------- 2b. CONFIGURATION GETTER & SECRETS PRECEDENCE TESTS ----------------
+
+    def test_get_config_var_prefers_streamlit_secrets_over_env(self):
+        """Verify st.secrets takes precedence over os.environ."""
+        from db import get_config_var
+        import streamlit as st
+
+        with patch.dict(os.environ, {"TEST_KEY": "from_env_var"}), \
+             patch.object(st, "secrets", {"TEST_KEY": "from_streamlit_secrets"}):
+            self.assertEqual(get_config_var("TEST_KEY"), "from_streamlit_secrets")
+
+    def test_get_config_var_falls_back_to_env_when_not_in_secrets(self):
+        """Verify fallback to os.environ when the key is absent in st.secrets."""
+        from db import get_config_var
+        import streamlit as st
+
+        with patch.dict(os.environ, {"TEST_KEY_ENV": "from_env_fallback"}), \
+             patch.object(st, "secrets", {}):
+            self.assertEqual(get_config_var("TEST_KEY_ENV"), "from_env_fallback")
+
+    def test_get_config_var_falls_back_to_default_when_both_missing(self):
+        """Verify fallback to provided default when neither secrets nor env exist."""
+        from db import get_config_var
+        import streamlit as st
+
+        with patch.dict(os.environ, {}, clear=True), \
+             patch.object(st, "secrets", {}):
+            self.assertEqual(get_config_var("MISSING_KEY", "default_val"), "default_val")
+
+    def test_get_connection_params_reads_from_streamlit_secrets(self):
+        """Verify FalkorDB connection params read properly from st.secrets."""
+        from db import get_connection_params
+        import streamlit as st
+
+        mock_secrets = {
+            "FALKORDB_HOST": "secrets.falkordb.cloud",
+            "FALKORDB_PORT": "12345",
+            "FALKORDB_USERNAME": "secrets_user",
+            "FALKORDB_PASSWORD": "secrets_password",
+            "FALKORDB_TLS": "true",
+        }
+        with patch.dict(os.environ, {}, clear=True), \
+             patch.object(st, "secrets", mock_secrets):
+            params = get_connection_params()
+            self.assertEqual(params["host"], "secrets.falkordb.cloud")
+            self.assertEqual(params["port"], 12345)
+            self.assertEqual(params["username"], "secrets_user")
+            self.assertEqual(params["password"], "secrets_password")
+            self.assertTrue(params["ssl"])
+
+    def test_agent_config_reads_from_streamlit_secrets(self):
+        """Verify agent timeout and model read properly from st.secrets."""
+        import streamlit as st
+
+        mock_secrets = {
+            "OPENROUTER_MODEL": "secrets-org/secrets-model:latest",
+            "OPENROUTER_TIMEOUT": "45",
+        }
+        with patch.dict(os.environ, {}, clear=True), \
+             patch.object(st, "secrets", mock_secrets):
+            self.assertEqual(get_configured_model(), "secrets-org/secrets-model:latest")
+            self.assertEqual(get_bounded_timeout(None), 45.0)
+
     # ---------------- 3. CREDENTIAL SANITIZATION TESTS ----------------
 
     def test_sanitize_error_message_redacts_api_key(self):

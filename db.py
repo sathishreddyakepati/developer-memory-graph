@@ -10,22 +10,47 @@ load_dotenv()
 DEFAULT_GRAPH_NAME = "developer_memory"
 
 
+def get_config_var(key: str, default: Any = None) -> Any:
+    """
+    Retrieve configuration with clear precedence:
+    1. Streamlit Community Cloud secrets (st.secrets) if running in/with Streamlit.
+    2. Environment variables (os.environ populated by .env or system).
+    3. Provided default value.
+    Gracefully handles missing Streamlit secrets or non-Streamlit environments.
+    """
+    try:
+        import streamlit as st
+        from streamlit.errors import StreamlitSecretNotFoundError
+
+        try:
+            if key in st.secrets:
+                val = st.secrets[key]
+                if val is not None:
+                    return str(val)
+        except (StreamlitSecretNotFoundError, FileNotFoundError, KeyError, AttributeError):
+            pass
+    except ImportError:
+        pass
+
+    return os.environ.get(key, default)
+
+
 def get_connection_params() -> Dict[str, Any]:
     """
-    Parse and validate FalkorDB connection parameters from environment variables.
+    Parse and validate FalkorDB connection parameters from secrets or environment variables.
     Properly interprets FALKORDB_TLS as a boolean flag.
     """
-    host = os.environ.get("FALKORDB_HOST", "localhost")
-    port_raw = os.environ.get("FALKORDB_PORT", "6379")
+    host = get_config_var("FALKORDB_HOST", "localhost")
+    port_raw = get_config_var("FALKORDB_PORT", "6379")
     try:
         port = int(port_raw)
     except (ValueError, TypeError):
         port = 6379
 
-    username = os.environ.get("FALKORDB_USERNAME")
-    password = os.environ.get("FALKORDB_PASSWORD")
+    username = get_config_var("FALKORDB_USERNAME")
+    password = get_config_var("FALKORDB_PASSWORD")
 
-    tls_raw = os.environ.get("FALKORDB_TLS", "false")
+    tls_raw = get_config_var("FALKORDB_TLS", "false")
     ssl = str(tls_raw).strip().lower() in ("true", "1", "yes", "t")
 
     return {
