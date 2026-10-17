@@ -1,0 +1,29 @@
+# Environment variables and secrets
+.env
+.env.local
+*.env
+.streamlit/secrets.toml
+
+# Python virtual environment and bytecode
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.backup*
+.streamlit/
+dist/
+build/
