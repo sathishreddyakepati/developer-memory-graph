@@ -218,7 +218,13 @@ def retrieve_relevant_memories(
         try:
             rows = search_memories(term)
             for row in rows:
-                title, error_desc, sol_desc, created_at, relevance = row
+                title = row[0]
+                error_desc = row[1]
+                sol_desc = row[2]
+                created_at = row[3] if len(row) > 3 else None
+                relevance = row[4] if len(row) > 4 else 1
+                status = row[5] if len(row) > 5 else "recorded"
+
                 key = (title, error_desc, sol_desc)
                 if key not in seen:
                     seen.add(key)
@@ -229,6 +235,7 @@ def retrieve_relevant_memories(
                         "created_at": created_at,
                         "relevance": relevance,
                         "matched_term": term,
+                        "status": status,
                     })
                     if len(results) >= limit:
                         break

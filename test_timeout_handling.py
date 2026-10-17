@@ -302,6 +302,36 @@ class TestTimeoutHandling(unittest.TestCase):
         import agent
         self.assertFalse(hasattr(agent, "save_memory"))
 
+    def test_save_memory_defaults_to_recorded_status_safe(self):
+        """Verify save_memory defaults to 'recorded' without connecting to live FalkorDB."""
+        from memory import save_memory
+
+        mock_graph = MagicMock()
+        mock_graph.query.return_value.result_set = [["test-mem-id"]]
+
+        with patch("memory.get_graph", return_value=mock_graph):
+            result = save_memory("Test Title", "Test Error", "Test Solution")
+
+            self.assertEqual(result["status"], "recorded")
+            call_args = mock_graph.query.call_args
+            params = call_args[0][1]
+            self.assertEqual(params["status"], "recorded")
+
+    def test_save_memory_explicit_verified_status_safe(self):
+        """Verify save_memory accepts explicit status='verified' upon human confirmation."""
+        from memory import save_memory
+
+        mock_graph = MagicMock()
+        mock_graph.query.return_value.result_set = [["test-mem-id"]]
+
+        with patch("memory.get_graph", return_value=mock_graph):
+            result = save_memory("Test Title", "Test Error", "Test Solution", status="verified")
+
+            self.assertEqual(result["status"], "verified")
+            call_args = mock_graph.query.call_args
+            params = call_args[0][1]
+            self.assertEqual(params["status"], "verified")
+
     # ---------------- 9. REGRESSION: STREAMLIT LOADING-STATE EXITS ON TIMEOUT ----------------
 
     def test_streamlit_loading_state_clears_on_timeout(self):

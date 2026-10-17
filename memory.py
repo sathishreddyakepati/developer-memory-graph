@@ -3,10 +3,11 @@ from datetime import datetime, timezone
 from db import get_db, get_graph
 
 
-def save_memory(session_title, error_description, solution_description):
+def save_memory(session_title, error_description, solution_description, status="recorded"):
     """
     Save a new development experience (session, error, and solution)
     to FalkorDB using the centralized connection.
+    Status defaults to safe 'recorded' unless explicitly marked 'verified'.
     """
     memory_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc).isoformat()
@@ -27,7 +28,8 @@ def save_memory(session_title, error_description, solution_description):
     CREATE (sol:Solution {
         id: $solution_id,
         memory_id: $memory_id,
-        description: $solution_description
+        description: $solution_description,
+        status: $status
     })
     CREATE (s)-[:ENCOUNTERED]->(e)
     CREATE (e)-[:RESOLVED_BY]->(sol)
@@ -42,6 +44,7 @@ def save_memory(session_title, error_description, solution_description):
         "error_description": error_description,
         "solution_id": f"solution-{memory_id}",
         "solution_description": solution_description,
+        "status": status,
         "created_at": created_at,
     }
 
@@ -53,6 +56,7 @@ def save_memory(session_title, error_description, solution_description):
         "session": session_title,
         "error": error_description,
         "solution": solution_description,
+        "status": status,
         "created_at": created_at,
     }
 

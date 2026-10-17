@@ -27,7 +27,11 @@ def search_memories(keyword):
          END AS relevance
     WHERE relevance > 0
     RETURN s.title, e.description, sol.description,
-           s.created_at, relevance
+           s.created_at, relevance,
+           CASE
+               WHEN sol.status IS NOT NULL THEN sol.status
+               ELSE 'recorded'
+           END AS status
     ORDER BY relevance DESC, s.created_at DESC
     LIMIT 10
     """
