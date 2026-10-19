@@ -115,7 +115,6 @@ To ensure high engineering trust, the workbench clearly distinguishes between:
 
 ## 6. Screenshot Gallery
 
-> **Note:** The images below are documentation placeholders for the workbench UI and will be populated with interface captures upon deployment:
 
 ### Main Workbench Dashboard
 ![Workbench Dashboard](screenshots/dashboard.png)
