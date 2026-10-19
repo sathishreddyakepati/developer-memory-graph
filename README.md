@@ -118,23 +118,23 @@ To ensure high engineering trust, the workbench clearly distinguishes between:
 
 ### Main Workbench Dashboard
 ![Workbench Dashboard](screenshots/dashboard.png)
-*Figure 1: Developer Memory Workbench dashboard showing system status, connection telemetry, and workspace navigation (placeholder).*
+
 
 ### AI Debugger & Query Interface
 ![AI Debugger](screenshots/ai-debugger.png)
-*Figure 2: Query input interface where developers paste terminal errors or tracebacks for grounded analysis (placeholder).*
+
 
 ### Grounded Historical Evidence Display
 ![Historical Evidence](screenshots/historical-evidence.png)
-*Figure 3: Demarcated evidence section displaying matching past session records and verification states from FalkorDB (placeholder).*
+
 
 ### Interactive Knowledge Graph Explorer
 ![Memory Graph Visualization](screenshots/memory-graph.png)
-*Figure 4: Visual exploration of Session, Error, and Solution nodes and their relationships rendered via streamlit-agraph (placeholder).*
+
 
 ### Search Memories Interface
 ![Search Memories](screenshots/search-memories.png)
-*Figure 5: Targeted memory search allowing developers to browse and filter past solutions (placeholder).*
+
 
 ---
 
